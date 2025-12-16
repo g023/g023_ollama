@@ -8,58 +8,6 @@ package ggml
 // #include "ggml.h"
 // #include "ggml-cpu.h"
 // #include "ggml-backend.h"
-
-
-// ============================================================================
-// PERFORMANCE OPTIMIZATIONS - DECEMBER 2025
-// ============================================================================
-// This file has been extensively optimized for high-performance ML workloads.
-// All optimizations are tuned for target hardware: 12GB CUDA GPU + 64GB RAM + 4+ cores.
-//
-// KEY IMPROVEMENTS:
-// 1. BUFFER POOL SYSTEM: 4-tier sync.Pool (128KB-4MB) - ~3000x faster allocation
-//    - Eliminates 524KB allocation per buffer request
-//    - Zero allocations after warm-up
-//
-// 2. I/O OPTIMIZATION: Tiered buffer sizes with GPU-aligned reads
-//    - 128KB, 512KB, 1MB, 4MB buffers based on data size
-//    - 256-byte CUDA memory alignment for optimal transfers
-//
-// 3. THREAD OPTIMIZATION: Dynamic thread scaling
-//    - I/O workloads: 2x CPU cores (up to 32 threads)
-//    - Compute workloads: 1x CPU cores
-//    - Automatic hardware detection
-//
-// 4. MEMORY ALIGNMENT: GPU/CPU cache-optimized allocations
-//    - CUDA: 256-byte alignment for coalesced access
-//    - CPU: 64-byte cache line alignment
-//
-// 5. PERFORMANCE METRICS: Real-time observability
-//    - Thread-safe metrics collection (~35ns overhead)
-//    - Tracks I/O, compute, memory, and tensor operations
-//    - Runtime performance debugging capabilities
-//
-// 6. ATTENTION OPTIMIZATION: Configurable flash attention
-//    - Precision control, chunk sizing, attention sinks
-//    - Optimized for 12GB GPU memory constraints
-//
-// 7. GRAPH OPTIMIZATION: Batch size estimation for GPU memory
-//    - Automatic batch sizing based on available VRAM
-//    - Prevents OOM while maximizing throughput
-//
-// 8. TENSOR OPERATION BATCHING: Reduced CGO overhead
-//    - Batch operations for common patterns
-//    - Parallel execution with optimal worker pools
-//
-// PERFORMANCE IMPACT:
-// - Buffer allocation: 3000x faster (129µs → 48ns)
-// - Memory usage: 100% reduction in allocations (524KB → 0)
-// - Observability: Full runtime metrics with negligible overhead
-// - Scalability: Automatic thread scaling for hardware capabilities
-//
-// All optimizations include graceful degradation and comprehensive testing.
-// ============================================================================
-
 import "C"
 
 import (
