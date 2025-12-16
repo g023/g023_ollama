@@ -102,9 +102,6 @@ GetMetrics:      31.27 ns/op    0 B/op    0 allocs/op
 
 ### Created
 1. `ml/backend/ggml/ggml_benchmark_test.go` - 450 lines of benchmarks + tests
-2. `KNOWLEDGE_BASE/NOTES.ggml_fixes.md` - This file
-3. `KNOWLEDGE_BASE/TODO.ggml_fixes.md` - Checklist
-4. `KNOWLEDGE_BASE/CURRENT_TASK.ggml_fixes.md` - Progress tracker
 
 ---
 
