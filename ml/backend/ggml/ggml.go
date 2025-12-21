@@ -212,7 +212,7 @@ type BufferPool struct {
 	huge   sync.Pool
 }
 
-var ioBufferPool = &BufferPool{
+var IOBufferPool = &BufferPool{
 	small: sync.Pool{
 		New: func() interface{} {
 			b := make([]byte, ioBufferSizeSmall)
@@ -344,8 +344,8 @@ func NewOptimizedSectionReader(file *os.File, offset, size int64) *OptimizedSect
 
 	return &OptimizedSectionReader{
 		sr:     sr,
-		buffer: ioBufferPool.GetBuffer(bufSize),
-		pool:   ioBufferPool,
+		buffer: IOBufferPool.GetBuffer(bufSize),
+		pool:   IOBufferPool,
 	}
 }
 
@@ -1071,9 +1071,9 @@ func (b *Backend) Load(ctx context.Context, progress func(float32)) error {
 					bufSize = BS * 8 * format.KibiByte // Minimum ~128KB aligned
 				}
 
-				bufPtr := ioBufferPool.GetBuffer(bufSize)
+				bufPtr := IOBufferPool.GetBuffer(bufSize)
 				bts := (*bufPtr)[:bufSize]
-				defer ioBufferPool.PutBuffer(bufPtr)
+				defer IOBufferPool.PutBuffer(bufPtr)
 
 				var s uint64
 				var tmp [16]byte
@@ -1117,9 +1117,9 @@ func (b *Backend) Load(ctx context.Context, progress func(float32)) error {
 				// source is bf16, target is ggml fp32
 				// Use pooled buffer for bf16 to fp32 conversion
 
-				bufPtr := ioBufferPool.GetBuffer(ioBufferSizeMedium)
+				bufPtr := IOBufferPool.GetBuffer(ioBufferSizeMedium)
 				bts := (*bufPtr)[:ioBufferSizeMedium]
-				defer ioBufferPool.PutBuffer(bufPtr)
+				defer IOBufferPool.PutBuffer(bufPtr)
 
 				var e uint64
 				for e < t.Elements() {
@@ -1159,9 +1159,9 @@ func (b *Backend) Load(ctx context.Context, progress func(float32)) error {
 				bufSize = ioBufferSizeMedium
 			}
 
-			bufPtr := ioBufferPool.GetBuffer(bufSize)
+			bufPtr := IOBufferPool.GetBuffer(bufSize)
 			bts := (*bufPtr)[:bufSize]
-			defer ioBufferPool.PutBuffer(bufPtr)
+			defer IOBufferPool.PutBuffer(bufPtr)
 
 			var s uint64
 			for s < t.Size() {

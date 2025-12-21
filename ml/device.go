@@ -17,6 +17,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ollama/ollama/envconfig"
 	"github.com/ollama/ollama/format"
 	"github.com/ollama/ollama/logutil"
 )
@@ -346,6 +347,9 @@ func (d DeviceInfo) Driver() string {
 // on the device for overhead (e.g. VRAM consumed by context structures independent
 // of model allocations)
 func (d DeviceInfo) MinimumMemory() uint64 {
+	if v := envconfig.VramMinFree(); v > 0 {
+		return v
+	}
 	if d.Library == "Metal" {
 		return 512 * format.MebiByte
 	}

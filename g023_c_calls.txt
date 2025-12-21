@@ -1,0 +1,265 @@
+						C.ggml_backend_tensor_set(tt, unsafe.Pointer(&bts[0]), C.size_t(s), C.size_t(n))
+						C.ggml_backend_tensor_set(tt, unsafe.Pointer(&fp32[0]), C.size_t(e*4), C.size_t(n*2))
+					C.ggml_backend_tensor_set(tt, unsafe.Pointer(&bts[0]), C.size_t(s), C.size_t(n))
+					mem_size: C.ggml_tensor_overhead() * C.size_t(maxTensors),
+				C.ggml_backend_buffer_free(b)
+				C.ggml_free(ctx)
+				C.int64_t(shape[0]), C.int64_t(shape[2]),
+				C.int64_t(shape[0]), C.int64_t(shape[2]), C.int64_t(shape[4]),
+				C.int64_t(shape[0]), C.int64_t(shape[2]), C.int64_t(shape[4]), C.int64_t(shape[6]),
+				C.size_t(offset)),
+				C.size_t(shape[1]),
+				C.size_t(shape[1]), C.size_t(shape[3]),
+				C.size_t(shape[1]), C.size_t(shape[3]), C.size_t(shape[5]),
+				ctxs[bt] = C.ggml_init(C.struct_ggml_init_params{
+				if dev == C.ggml_backend_get_device(backend) {
+				slog.Debug("skipping unused backend device", "description", C.GoString(C.ggml_backend_dev_description(dev)))
+			"buffer_type", C.GoString(C.ggml_backend_buft_name(c.b.schedBufts[i])), "size", format.HumanBytes2(uint64(bufferSize)))
+			"size", format.HumanBytes2(uint64(C.ggml_backend_buffer_get_size(bs))))
+			C.GGML_BACKEND_DEVICE_TYPE_ACCEL:
+			C.GGML_BACKEND_DEVICE_TYPE_IGPU:
+			C.float(opts.YaRN.ExtrapolationFactor),
+			C.float(ropeBase), C.float(ropeScale),
+			C.ggml_backend_buffer_free(b)
+			C.ggml_backend_cpu_set_n_threads(b, C.int(Threads(params.NumThreads)))
+			C.ggml_backend_sched_synchronize(c.b.sched)
+			C.ggml_flash_attn_ext_add_sinks(kqv, sinks.(*Tensor).t)
+			C.ggml_set_name(tt, cname)
+			C.ggml_soft_max_add_sinks(kq.(*Tensor).t, sinks.(*Tensor).t)
+			C.int(opts.Type),
+			C.int(ropeDim),
+			C.int(ropeDim), C.int(opts.Type),
+			bt := C.ggml_backend_dev_buffer_type(d)
+			btDeviceMemory[C.ggml_backend_dev_buffer_type(d)] = &requiredMemory.CPU
+			bts: append([]C.ggml_backend_buffer_type_t{bt}, cpuDeviceBufferType.bts...),
+			cmp.Or(C.float(opts.YaRN.AttentionFactor), 1),
+			cmp.Or(C.float(opts.YaRN.BetaFast), 32),
+			cmp.Or(C.float(opts.YaRN.BetaSlow), 1),
+			cmp.Or(C.int(opts.YaRN.OriginalContextLength), 128<<10),
+			cname := C.CString(name)
+			defer C.free(unsafe.Pointer(cname))
+			if c, ok := ctxs[bt]; !ok || C.ggml_get_first_tensor(c) == nil {
+			if d == C.ggml_backend_get_device(backend) {
+			if tt := C.ggml_get_tensor(ctxs[bt], cname); tt != nil {
+			info.Library = C.GoString(props.library)
+			info.PCIID = C.GoString(props.device_id)
+			logutil.Trace("created tensor", "name", name, "shape", t.source.Shape, "dtype", t.source.Kind, "buffer_type", C.GoString(C.ggml_backend_buft_name(bt)))
+			mem_size: C.size_t(n)*C.ggml_tensor_overhead() + C.ggml_graph_overhead_custom(C.size_t(n), false),
+			mropeSections[i] = C.int32_t(section)
+			padSize := int(pad(C.size_t(mask.Dim(1)), C.size_t(cacheConfig.MaskBatchPadding))) - mask.Dim(1)
+			shape[i] = C.int64_t(t.Dim(i) * n)
+			shape[i] = C.int64_t(t.Dim(i))
+			size := pad(C.ggml_backend_buft_get_alloc_size(bt, tt), C.ggml_backend_buft_get_alignment(bt))
+			t: C.ggml_arange(c.ctx, C.float(start), C.float(stop), C.float(step)),
+			t: C.ggml_cont(ctx.(*Context).ctx, t.t),
+			t: C.ggml_cont_1d(ctx.(*Context).ctx, t.t, C.int64_t(shape[0])),
+			t: C.ggml_cont_2d(ctx.(*Context).ctx, t.t, C.int64_t(shape[0]), C.int64_t(shape[1])),
+			t: C.ggml_cont_3d(ctx.(*Context).ctx, t.t, C.int64_t(shape[0]), C.int64_t(shape[1]), C.int64_t(shape[2])),
+			t: C.ggml_cont_4d(ctx.(*Context).ctx, t.t, C.int64_t(shape[0]), C.int64_t(shape[1]), C.int64_t(shape[2]), C.int64_t(shape[3])),
+			t: C.ggml_geglu_split(ctx.(*Context).ctx, t.t, t2[0].(*Tensor).t),
+			t: C.ggml_reglu_split(ctx.(*Context).ctx, t.t, t2[0].(*Tensor).t),
+			t: C.ggml_reshape_1d(ctx.(*Context).ctx, t.t, C.int64_t(shape[0])),
+			t: C.ggml_reshape_2d(ctx.(*Context).ctx, t.t, C.int64_t(shape[0]), C.int64_t(shape[1])),
+			t: C.ggml_reshape_3d(ctx.(*Context).ctx, t.t, C.int64_t(shape[0]), C.int64_t(shape[1]), C.int64_t(shape[2])),
+			t: C.ggml_reshape_4d(ctx.(*Context).ctx, t.t, C.int64_t(shape[0]), C.int64_t(shape[1]), C.int64_t(shape[2]), C.int64_t(shape[3])),
+			t: C.ggml_soft_max_ext(ctx.(*Context).ctx, kq.(*Tensor).t, kqMask, C.float(scale), 0),
+			t: C.ggml_swiglu_split(ctx.(*Context).ctx, t.t, t2[0].(*Tensor).t),
+			t: C.ggml_view_1d(ctx.(*Context).ctx, t.t, C.int64_t(shape[0]), C.size_t(offset)),
+			t: C.ggml_view_2d(ctx.(*Context).ctx, t.t,
+			t: C.ggml_view_3d(ctx.(*Context).ctx, t.t,
+			t: C.ggml_view_4d(ctx.(*Context).ctx, t.t,
+			tensors[C.GoString(C.ggml_get_name(t))] = t
+			tt := C.ggml_new_tensor(ctxs[bt], kind, C.int(len(t.source.Shape)), (*C.int64_t)(unsafe.Pointer(&t.source.Shape[0])))
+			tt = C.ggml_add(ctx.(*Context).ctx, tt, b.(*Tensor).t)
+			tts := make([]*C.struct_ggml_tensor, max(1, len(b.tensorLoadTargets[t.Name])))
+		(*C.ggml_backend_buffer_type_t)(unsafe.Pointer(&schedBufts[0])),
+		(*C.ggml_backend_t)(unsafe.Pointer(&schedBackends[0])),
+		C.GGML_BACKEND_DEVICE_TYPE_IGPU:
+		C._Bool(false),
+		C._Bool(params.AllocMemory),
+		C._Bool(true),
+		C.ggml_backend_buffer_free(b)
+		C.ggml_backend_buffer_set_usage(b, C.GGML_BACKEND_BUFFER_USAGE_WEIGHTS)
+		C.ggml_backend_dev_get_props(d, &props)
+		C.ggml_backend_dev_get_props(dev, &props)
+		C.ggml_backend_dev_memory(dev, &props.memory_free, &props.memory_total)
+		C.ggml_backend_dev_reset(d)
+		C.ggml_backend_sched_set_batch_size(c.b.sched, C.int(c.batchSize))
+		C.ggml_backend_tensor_get(t.t, unsafe.Pointer(&data[0]), 0, C.ggml_nbytes(t.t))
+		C.ggml_build_forward_expand(c.graph, tensor.(*Tensor).t)
+		C.ggml_flash_attn_ext_set_prec(kqv, C.GGML_PREC_F32)
+		C.ggml_free(c.ctx)
+		C.ggml_free(ctx)
+		C.ggml_set_zero(t.t)
+		C.int(len(schedBackends)),
+		C.size_t(maxGraphNodes),
+		alignment = C.size_t(cudaMemoryAlignment)
+		b := C.ggml_backend_alloc_ctx_tensors_from_buft(c, bt)
+		backends[d] = C.ggml_backend_dev_init(d, nil)
+		bt := C.ggml_backend_dev_buffer_type(d)
+		bt := C.ggml_backend_get_default_buffer_type(b)
+		bts []C.ggml_backend_buffer_type_t
+		bufferSize := C.ggml_backend_sched_get_attempted_buffer_size(c.b.sched, c.b.schedBackends[i])
+		c.graph = C.ggml_new_graph_custom(c.ctx, C.size_t(c.maxGraphNodes), false)
+		case C.GGML_BACKEND_DEVICE_TYPE_ACCEL:
+		case C.GGML_BACKEND_DEVICE_TYPE_CPU,
+		case C.GGML_BACKEND_DEVICE_TYPE_CPU:
+		case C.GGML_BACKEND_DEVICE_TYPE_GPU,
+		ctx: C.ggml_init(C.struct_ggml_init_params{
+		d   C.ggml_backend_dev_t
+		d := C.ggml_backend_dev_get(i)
+		data = make([]byte, C.ggml_nbytes(t.t))
+		data = make([]float32, C.ggml_nelements(t.t))
+		dequant = C.ggml_cast(ctx.(*Context).ctx, t.t, C.GGML_TYPE_F32)
+		for t := C.ggml_get_first_tensor(c); t != nil; t = C.ggml_get_next_tensor(c, t) {
+		graphNodes = uint64(C.ggml_graph_n_nodes(c.graph))
+		if C.ggml_backend_is_cpu(b) {
+		if C.ggml_get_first_tensor(c) == nil {
+		if C.ggml_nbytes(t.(*Tensor).t) > 0 {
+		info.Description = C.GoString(props.description)
+		info.ID = C.GoString(props.id)
+		info.Library = C.GoString(props.library)
+		info.Name = C.GoString(props.name)
+		kqv := C.ggml_flash_attn_ext(ctx.(*Context).ctx, query.(*Tensor).t, key.(*Tensor).t, value.(*Tensor).t, kqMask, C.float(scale), 0, 0)
+		logutil.Trace("compute graph", "backend", C.GoString(C.ggml_backend_name(c.b.schedBackends[i])),
+		logutil.Trace("model weights", "buffer", C.GoString(C.ggml_backend_buffer_name(bs)),
+		mode = C.GGML_SCALE_MODE_BILINEAR
+		mode = C.GGML_SCALE_MODE_NEAREST
+		mropeSections := make([]C.int32_t, 4)
+		props := C.struct_ggml_backend_dev_props{}
+		requiredMemory.GPUs[i].ID = C.GoString(props.id)
+		requiredMemory.GPUs[i].Library = C.GoString(props.library)
+		requiredMemory.GPUs[i].Name = C.GoString(C.ggml_backend_dev_name(d))
+		return &Tensor{b: c.b, t: C.ggml_new_tensor(c.ctx, cdtype, 1, &shape)}
+		return C.GGML_TYPE_F16
+		return C.GGML_TYPE_F32
+		return C.GGML_TYPE_I32
+		return C.GGML_TYPE_MXFP4
+		return C.GGML_TYPE_Q4_0
+		return C.GGML_TYPE_Q8_0
+		return ml.CacheConfig{CachePadding: 256, MaskDType: ml.DTypeF16, MaskBatchPadding: C.GGML_KQ_MASK_PAD}
+		sh[i] = C.int64_t(s)
+		slog.String("name", C.GoString(C.ggml_get_name(t.t))),
+		slog.String("type", C.GoString(C.ggml_type_name(t.t._type))),
+		switch C.ggml_backend_dev_type(d) {
+		switch C.ggml_backend_dev_type(layer.d) {
+		t: C.ggml_add(ctx.(*Context).ctx, t.t, t2.(*Tensor).t),
+		t: C.ggml_add_id(ctx.(*Context).ctx, t.t, t2.(*Tensor).t, ids.(*Tensor).t),
+		t: C.ggml_argsort(ctx.(*Context).ctx, t.t, C.GGML_SORT_ORDER_ASC),
+		t: C.ggml_argsort_top_k(ctx.(*Context).ctx, t.t, C.int(k)),
+		t: C.ggml_cast(ctx.(*Context).ctx, t.t, ggmlDType(dtype)),
+		t: C.ggml_concat(ctx.(*Context).ctx, t.t, t2.(*Tensor).t, C.int(dim)),
+		t: C.ggml_conv_2d(ctx.(*Context).ctx, t.t, t2.(*Tensor).t, C.int(s0), C.int(s1), C.int(p0), C.int(p1), C.int(d0), C.int(d1)),
+		t: C.ggml_conv_3d(ctx.(*Context).ctx, t.t, t2.(*Tensor).t, C.int64_t(c), C.int(s0), C.int(s1), C.int(s2), C.int(p0), C.int(p1), C.int(p2), C.int(d0), C.int(d1), C.int(d2)),
+		t: C.ggml_cos(ctx.(*Context).ctx, t.t),
+		t: C.ggml_cpy(ctx.(*Context).ctx, t.t, t2.(*Tensor).t),
+		t: C.ggml_div(ctx.(*Context).ctx, t.t, t2.(*Tensor).t),
+		t: C.ggml_dup(ctx.(*Context).ctx, t.t),
+		t: C.ggml_gelu_inplace(ctx.(*Context).ctx, t.t),
+		t: C.ggml_get_rows(ctx.(*Context).ctx, t.t, t2.(*Tensor).t),
+		t: C.ggml_im2col(ctx.(*Context).ctx, t.t, t2.(*Tensor).t, C.int(s0), C.int(s1), C.int(p0), C.int(p1), C.int(d0), C.int(d1), true, C.GGML_TYPE_F32),
+		t: C.ggml_interpolate(ctx.(*Context).ctx, t.t, C.int64_t(dims[0]), C.int64_t(dims[1]), C.int64_t(dims[2]), C.int64_t(dims[3]), mode),
+		t: C.ggml_l2_norm(ctx.(*Context).ctx, t.t, C.float(eps)),
+		t: C.ggml_mean(ctx.(*Context).ctx, t.t),
+		t: C.ggml_mul(ctx.(*Context).ctx, t.t, t2.(*Tensor).t),
+		t: C.ggml_mul_mat(ctx.(*Context).ctx, t.t, t2.(*Tensor).t),
+		t: C.ggml_mul_mat_id(ctx.(*Context).ctx, t.t, t2.(*Tensor).t, ids.(*Tensor).t),
+		t: C.ggml_pad(ctx.(*Context).ctx, t.t, C.int(shape[0]), C.int(shape[1]), C.int(shape[2]), C.int(shape[3])),
+		t: C.ggml_permute(ctx.(*Context).ctx, t.t, C.int(order[0]), C.int(order[1]), C.int(order[2]), C.int(order[3])),
+		t: C.ggml_pool_2d(ctx.(*Context).ctx, t.t, C.GGML_OP_POOL_AVG, C.int(k), C.int(k), C.int(s), C.int(s), C.float(p), C.float(p)),
+		t: C.ggml_relu_inplace(ctx.(*Context).ctx, t.t),
+		t: C.ggml_repeat(ctx.(*Context).ctx, t.t, tmpl),
+		t: C.ggml_scale(ctx.(*Context).ctx, t.t, (C.float)(s)),
+		t: C.ggml_set_rows(ctx.(*Context).ctx, t.t, src.(*Tensor).t, idxs.(*Tensor).t),
+		t: C.ggml_sigmoid_inplace(ctx.(*Context).ctx, t.t),
+		t: C.ggml_silu_inplace(ctx.(*Context).ctx, t.t),
+		t: C.ggml_sin(ctx.(*Context).ctx, t.t),
+		t: C.ggml_soft_max(ctx.(*Context).ctx, t.t),
+		t: C.ggml_sqr(ctx.(*Context).ctx, t.t),
+		t: C.ggml_sqrt(ctx.(*Context).ctx, t.t),
+		t: C.ggml_sub(ctx.(*Context).ctx, t.t, t2.(*Tensor).t),
+		t: C.ggml_sum_rows(ctx.(*Context).ctx, t.t),
+		t: C.ggml_swiglu_oai(ctx.(*Context).ctx, t.t, up.(*Tensor).t, C.float(alpha), C.float(limit)),
+		t: C.ggml_tanh_inplace(ctx.(*Context).ctx, t.t),
+		tt = C.ggml_geglu_quick_split(ctx.(*Context).ctx, t.t, t2[0].(*Tensor).t)
+		tt = C.ggml_gelu_quick_inplace(ctx.(*Context).ctx, t.t)
+		tt = C.ggml_mul(ctx.(*Context).ctx, tt, w.(*Tensor).t)
+		tt = C.ggml_rope_ext(
+		tt = C.ggml_rope_multi(
+		var props C.struct_ggml_backend_dev_props
+		var shape C.int64_t = 0
+	C.ggml_backend_dev_get_props(cpuDeviceBufferType.d, &props)
+	C.ggml_backend_sched_free(b.sched)
+	C.ggml_backend_sched_reset(c.b.sched)
+	C.ggml_backend_tensor_alloc(b, t, C.ggml_backend_buffer_get_base(b))
+	C.ggml_backend_tensor_set(t.t, unsafe.Pointer(&s[0]), 0, C.ggml_nbytes(t.t))
+	C.ggml_mul_mat_set_prec(mul, C.GGML_PREC_F32)
+	alignment := C.ggml_backend_buft_get_alignment(c.buft)
+	allocatedBuffers *[]C.ggml_backend_buffer_t
+	b := C.ggml_backend_buft_alloc_buffer(c.buft, size)
+	backends           map[C.ggml_backend_dev_t]C.ggml_backend_t
+	backends = make(map[C.ggml_backend_dev_t]C.ggml_backend_t)
+	bbs := make(map[*C.struct_ggml_context]C.ggml_backend_buffer_t, len(ctxs))
+	bt C.ggml_backend_buffer_type_t
+	btDeviceMemory := make(map[C.ggml_backend_buffer_type_t]*ml.DeviceMemory)
+	btDeviceMemory map[C.ggml_backend_buffer_type_t]*ml.DeviceMemory
+	buft C.ggml_backend_buffer_type_t
+	case C.GGML_BACKEND_DEVICE_TYPE_ACCEL:
+	case C.GGML_BACKEND_DEVICE_TYPE_CPU:
+	case C.GGML_BACKEND_DEVICE_TYPE_GPU,
+	case C.GGML_TYPE_F16:
+	case C.GGML_TYPE_F32:
+	case C.GGML_TYPE_I32:
+	case C.GGML_TYPE_MXFP4:
+	case C.GGML_TYPE_Q4_0:
+	case C.GGML_TYPE_Q8_0:
+	cpuDeviceBufferType := deviceBufferType{d: C.ggml_backend_dev_by_type(C.GGML_BACKEND_DEVICE_TYPE_CPU)}
+	cpus, accels, gpus []C.ggml_backend_dev_t
+	createTensor := func(t tensor, bts []C.ggml_backend_buffer_type_t, layer int) *C.struct_ggml_tensor {
+	ctx   *C.struct_ggml_context
+	ctxs := make(map[C.ggml_backend_buffer_type_t]*C.struct_ggml_context)
+	d  C.ggml_backend_dev_t
+	deviceBufferTypes := make(map[C.ggml_backend_dev_t]C.ggml_backend_buffer_type_t)
+	for i := range C.GGML_MAX_DIMS {
+	for i := range C.ggml_backend_dev_count() {
+	graph *C.struct_ggml_cgraph
+	if !C.ggml_is_contiguous(t.t) {
+	if C.ggml_is_quantized(t.t._type) {
+	if alignment < C.size_t(cudaMemoryAlignment) {
+	if dim < 0 || dim >= C.GGML_MAX_DIMS {
+	if int(C.ggml_nbytes(t.t)) != len(s)*binary.Size(s[0]) {
+	if status := C.ggml_backend_sched_graph_compute_async(c.b.sched, c.graph); status != C.GGML_STATUS_SUCCESS {
+	input C.ggml_backend_buffer_type_t
+	mul := C.ggml_mul_mat(ctx.(*Context).ctx, t.t, t2.(*Tensor).t)
+	output C.ggml_backend_dev_t
+	requiredMemory.CPU.ID = C.GoString(props.id)
+	requiredMemory.CPU.Library = C.GoString(props.library)
+	requiredMemory.CPU.Name = C.GoString(C.ggml_backend_dev_name(cpuDeviceBufferType.d))
+	reserved := C.ggml_backend_sched_reserve(c.b.sched, c.graph)
+	sched         C.ggml_backend_sched_t
+	sched := C.ggml_backend_sched_new_ext(
+	schedBackends []C.ggml_backend_t
+	schedBufts    []C.ggml_backend_buffer_type_t
+	sh := make([]C.int64_t, len(shape))
+	shape := make([]C.int64_t, C.GGML_MAX_DIMS)
+	shape := make([]int, C.ggml_n_dims(t.t))
+	size := pad(C.ggml_backend_buft_get_alloc_size(c.buft, t), alignment)
+	slog.Debug("compute graph", "nodes", C.ggml_graph_n_nodes(c.graph), "splits", C.ggml_backend_sched_get_n_splits(c.b.sched))
+	switch C.ggml_backend_dev_type(b.output) {
+	t    *C.struct_ggml_tensor
+	t := C.ggml_new_tensor(c.ctx, cdtype, C.int(len(shape)), shapeToGGML(shape))
+	tensors := make(map[string]*C.struct_ggml_tensor)
+	tensors map[string]*C.struct_ggml_tensor
+	tmpl := C.ggml_new_tensor(ctx.(*Context).ctx, t.t._type, C.int(len(shape)), unsafe.SliceData(shape))
+	tt := C.ggml_norm(ctx.(*Context).ctx, t.t, C.float(eps))
+	tt := C.ggml_rms_norm(ctx.(*Context).ctx, t.t, C.float(eps))
+	var allocatedBuffers []C.ggml_backend_buffer_t
+	var kqMask *C.struct_ggml_tensor
+	var mode C.uint32_t
+	var props C.struct_ggml_backend_dev_props
+	var schedBackends []C.ggml_backend_t
+	var schedBufts []C.ggml_backend_buffer_type_t
+	var tt *C.struct_ggml_tensor
+	weightBuffers map[*C.struct_ggml_context]C.ggml_backend_buffer_t
+func pad(length, pad C.size_t) C.size_t {
+func shapeToGGML(shape []int) *C.int64_t {

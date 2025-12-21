@@ -196,13 +196,6 @@ func NewLlamaServer(systemInfo ml.SystemInfo, gpus []ml.DeviceInfo, modelPath st
 
 	fa := envconfig.FlashAttention(f.FlashAttention())
 
-	if !faUserSet {
-		fa = fa || (ml.FlashAttentionSupported(gpus) && f.SupportsFlashAttention())
-		if ml.FlashAttentionSupported(gpus) && f.SupportsFlashAttention() {
-			slog.Debug("flash attention auto-detected as supported")
-		}
-	}
-
 	// This will disable flash attention unless all GPUs on the system support it, even if we end up selecting a subset
 	// that can handle it.
 	if fa && !ml.FlashAttentionSupported(gpus) {
@@ -218,10 +211,13 @@ func NewLlamaServer(systemInfo ml.SystemInfo, gpus []ml.DeviceInfo, modelPath st
 	kvct := strings.ToLower(envconfig.KvCacheType())
 
 	if textProcessor == nil {
-		flashAttention := ml.FlashAttentionDisabled
-		if fa {
-			slog.Info("enabling flash attention")
-			flashAttention = ml.FlashAttentionEnabled
+		flashAttention := ml.FlashAttentionAuto
+		if faUserSet {
+			if fa {
+				flashAttention = ml.FlashAttentionEnabled
+			} else {
+				flashAttention = ml.FlashAttentionDisabled
+			}
 		}
 
 		if kvct != "" {
@@ -528,8 +524,13 @@ func (s *llamaServer) Load(ctx context.Context, systemInfo ml.SystemInfo, system
 	// Use the size of one layer as a buffer
 	layers := s.ggml.Tensors().GroupLayers()
 	if blk0, ok := layers["blk.0"]; ok {
+		buffer := blk0.Size() + kv[0]
 		for i := range gpus {
-			gpus[i].FreeMemory -= blk0.Size() + kv[0]
+			if gpus[i].FreeMemory > buffer {
+				gpus[i].FreeMemory -= buffer
+			} else {
+				gpus[i].FreeMemory = 0
+			}
 		}
 	} else {
 		slog.Warn("model missing blk.0 layer size")
@@ -579,7 +580,11 @@ func (s *llamaServer) Load(ctx context.Context, systemInfo ml.SystemInfo, system
 			projectorGPU = firstIntegrated
 		}
 
-		gpus[projectorGPU].FreeMemory -= projectorWeights
+		if gpus[projectorGPU].FreeMemory > projectorWeights {
+			gpus[projectorGPU].FreeMemory -= projectorWeights
+		} else {
+			gpus[projectorGPU].FreeMemory = 0
+		}
 	}
 
 	var kvTotal uint64
