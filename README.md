@@ -1,3 +1,5 @@
+# Currently in process of updating to latest Ollama 0.13.5
+
 Welcome to g023's version of Ollama (forked off of the Dec 15,2025 latest version)
 
 ## "QUICK" INSTALL UBUNTU:
