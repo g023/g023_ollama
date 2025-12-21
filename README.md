@@ -1,7 +1,5 @@
 Welcome to g023's version of Ollama (forked off of the Dec 15,2025 latest version)
 
-# GGML Tweaks - Technical Notes
-
 ## "QUICK" INSTALL UBUNTU:
 ``` bash
 sudo apt update && sudo apt upgrade -y
@@ -127,6 +125,7 @@ Remove-NetFirewallRule -DisplayName "Ollama WSL"
 netsh interface portproxy delete v4tov4 listenport=11434 listenaddress=0.0.0.0
 ```
 
+# GGML Tweaks - Technical Notes
 ## File Analysis: `/ml/backend/ggml/ggml.go`
 
 ### Overview
