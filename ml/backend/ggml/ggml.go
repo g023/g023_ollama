@@ -106,6 +106,11 @@ type OptimizationMetrics struct {
 	TensorCopies       uint64
 	AttentionCalls     uint64
 	MulmatCalls        uint64
+
+	// Wavelet compression metrics
+	CompressionOps     uint64
+	DecompressionOps   uint64
+	MemorySavedBytes   uint64
 }
 
 var globalMetrics = &OptimizationMetrics{}
@@ -158,6 +163,9 @@ func ResetMetrics() {
 	globalMetrics.TensorCopies = 0
 	globalMetrics.AttentionCalls = 0
 	globalMetrics.MulmatCalls = 0
+	globalMetrics.CompressionOps = 0
+	globalMetrics.DecompressionOps = 0
+	globalMetrics.MemorySavedBytes = 0
 }
 
 // recordRead tracks I/O read performance
@@ -197,7 +205,17 @@ func recordTensorOp(opType string) {
 		globalMetrics.AttentionCalls++
 	case "mulmat":
 		globalMetrics.MulmatCalls++
+	case "compress":
+		globalMetrics.CompressionOps++
+	case "decompress":
+		globalMetrics.DecompressionOps++
 	}
+}
+
+func RecordCompressionMetric(saved uint64) {
+	globalMetrics.mu.Lock()
+	defer globalMetrics.mu.Unlock()
+	globalMetrics.MemorySavedBytes += saved
 }
 
 // ============================================================================

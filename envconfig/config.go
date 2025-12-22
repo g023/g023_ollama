@@ -208,6 +208,12 @@ var (
 	UseAuth = Bool("OLLAMA_AUTH")
 	// Enable Vulkan backend
 	EnableVulkan = Bool("OLLAMA_VULKAN")
+	// KvCacheCompression enables wavelet-based compression
+	KvCacheCompression = Bool("OLLAMA_KV_COMPRESSION")
+	// KvCompressionThreshold sets the age threshold (in tokens) for compression
+	KvCompressionThreshold = Uint("OLLAMA_KV_COMPRESSION_THRESHOLD", 512)
+	// KvCompressionLevel sets wavelet decomposition levels (1-6)
+	KvCompressionLevel = Uint("OLLAMA_KV_COMPRESSION_LEVEL", 4)
 )
 
 func String(s string) func() string {
@@ -296,6 +302,9 @@ func AsMap() map[string]EnvVar {
 		"OLLAMA_VRAM_MIN_FREE":     {"OLLAMA_VRAM_MIN_FREE", VramMinFree(), "Minimum free VRAM to maintain per GPU (bytes)"},
 		"OLLAMA_NEW_ENGINE":        {"OLLAMA_NEW_ENGINE", NewEngine(), "Enable the new Ollama engine"},
 		"OLLAMA_REMOTES":           {"OLLAMA_REMOTES", Remotes(), "Allowed hosts for remote models (default \"ollama.com\")"},
+		"OLLAMA_KV_COMPRESSION":   {"OLLAMA_KV_COMPRESSION", KvCacheCompression(), "Enable wavelet-based KV cache compression"},
+		"OLLAMA_KV_COMPRESSION_THRESHOLD": {"OLLAMA_KV_COMPRESSION_THRESHOLD", KvCompressionThreshold(), "Age threshold for KV compression"},
+		"OLLAMA_KV_COMPRESSION_LEVEL":     {"OLLAMA_KV_COMPRESSION_LEVEL", KvCompressionLevel(), "Wavelet decomposition levels"},
 
 		// Informational
 		"HTTP_PROXY":  {"HTTP_PROXY", String("HTTP_PROXY")(), "HTTP proxy"},

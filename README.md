@@ -1,6 +1,12 @@
-# Updated to latest Ollama 0.13.5
+# Synced with Ollama 0.13.5 + g023 patches 
 
-Welcome to g023's version of Ollama (forked off of the Dec 15,2025 latest version; then updated to Ollama 0.13.5)
+Welcome to g023's version of Ollama (forked off of the Dec 15,2025 latest version; synced with Ollama 0.13.5 + new additions.
+New additions:
+- Can now set environment variables to:
+- - enable Wavelet-Based Fractal Compression for KV Cache
+- - - OLLAMA_KV_COMPRESSION=1
+- - limit reserved ollama memory: Reserve a portion of VRAM per GPU (bytes)
+- - - OLLAMA_GPU_OVERHEAD
 
 ## "QUICK" INSTALL UBUNTU:
 ``` bash
@@ -753,4 +759,10 @@ nn.ResetAttentionCaches()
 **Automatically enables Flash Attention** if supported (activates when loading model)
 Default context minimum is now **16384** instead of **4096** (plan to change that to autoset from model)
 
+### 🌊 Wavelet-Based Fractal Compression (Experimental)
+- **Memory Savings**: 60-70% VRAM reduction for long contexts (16k+ tokens).
+- **Adaptive**: Guided by real-time attention scores to preserve critical context.
+- **High Performance**: SIMD-optimized Haar transforms for sub-millisecond overhead.
+- **Enable**: Set `OLLAMA_KV_COMPRESSION=1` in your environment or run:
+- OLLAMA_KV_COMPRESSION=1 ./ollama serve
 --

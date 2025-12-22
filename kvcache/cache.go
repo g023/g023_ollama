@@ -75,3 +75,10 @@ type Cache interface {
 	// removed by calling Remove(seq, 0, math.MaxInt32)
 	Remove(seq int, beginIndex, endIndex int32) error
 }
+
+// CompressionAwareCache is an optional interface for caches that support
+// wavelet-based compression and need attention scores to guide it.
+type CompressionAwareCache interface {
+	Cache
+	RecordAttentionScores(layer int, scores []float32)
+}

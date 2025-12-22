@@ -38,9 +38,12 @@ import (
 	"fmt"
 	"math"
 	"math/bits"
+	"sync"
 
+	"github.com/ollama/ollama/kvcache/wavelet"
 	"github.com/ollama/ollama/ml"
 	"github.com/ollama/ollama/model/input"
+	"github.com/ollama/ollama/envconfig"
 )
 
 // ============================================================================
@@ -167,13 +170,26 @@ type Causal struct {
 	backend      ml.Backend
 	ctxs         map[int]ml.Context
 	keys, values map[int]ml.Tensor
+
+	// ** compression fields **
+	compressionEnabled   bool
+	compressionConfig    *wavelet.CodecConfig
+	compressionThreshold int32 // Compress cells older than this position offset
+	compressionMu        sync.RWMutex
+	compressedSegments   map[int]map[int]*compressedSegment // layer -> cellIndex -> segment
+	attentionScores      map[int][]float32                  // layer -> scores
+}
+
+type compressedSegment struct {
+	coeffs *wavelet.WaveletCoefficients
 }
 
 // cacheCell stores position and sequence information for a single cache location.
 // Uses bitmap for O(1) sequence operations instead of []int slice.
 type cacheCell struct {
-	pos     int32
-	seqMask seqBitmap // Bitmap of sequences that reference this cell
+	pos        int32
+	seqMask    seqBitmap // Bitmap of sequences that reference this cell
+	compressed bool      // Is this cell in compressed form?
 }
 
 type cellRange struct {
@@ -189,45 +205,53 @@ type lowestPosition struct {
 
 func NewCausalCache(shift shiftFn) *Causal {
 	return &Causal{
-		shiftFn:          shift,
-		ctxs:             make(map[int]ml.Context),
-		keys:             make(map[int]ml.Tensor),
-		values:           make(map[int]ml.Tensor),
-		scratchLowestPos: make(map[int]lowestPosition),
+		shiftFn:            shift,
+		ctxs:               make(map[int]ml.Context),
+		keys:               make(map[int]ml.Tensor),
+		values:             make(map[int]ml.Tensor),
+		scratchLowestPos:   make(map[int]lowestPosition),
+		compressedSegments: make(map[int]map[int]*compressedSegment),
+		attentionScores:    make(map[int][]float32),
 	}
 }
 
 func NewSWACache(windowSize int32, shift shiftFn) *Causal {
 	return &Causal{
-		swaWindowSize:    windowSize,
-		shiftFn:          shift,
-		ctxs:             make(map[int]ml.Context),
-		keys:             make(map[int]ml.Tensor),
-		values:           make(map[int]ml.Tensor),
-		scratchLowestPos: make(map[int]lowestPosition),
+		swaWindowSize:      windowSize,
+		shiftFn:            shift,
+		ctxs:               make(map[int]ml.Context),
+		keys:               make(map[int]ml.Tensor),
+		values:             make(map[int]ml.Tensor),
+		scratchLowestPos:   make(map[int]lowestPosition),
+		compressedSegments: make(map[int]map[int]*compressedSegment),
+		attentionScores:    make(map[int][]float32),
 	}
 }
 
 func NewSWAMemCache(windowSize int32, memorySize int32, shift shiftFn) *Causal {
 	return &Causal{
-		swaWindowSize:    windowSize,
-		swaMemorySize:    memorySize,
-		shiftFn:          shift,
-		ctxs:             make(map[int]ml.Context),
-		keys:             make(map[int]ml.Tensor),
-		values:           make(map[int]ml.Tensor),
-		scratchLowestPos: make(map[int]lowestPosition),
+		swaWindowSize:      windowSize,
+		swaMemorySize:      memorySize,
+		shiftFn:            shift,
+		ctxs:               make(map[int]ml.Context),
+		keys:               make(map[int]ml.Tensor),
+		values:             make(map[int]ml.Tensor),
+		scratchLowestPos:   make(map[int]lowestPosition),
+		compressedSegments: make(map[int]map[int]*compressedSegment),
+		attentionScores:    make(map[int][]float32),
 	}
 }
 
 func NewChunkedAttentionCache(chunkSize int32, shift shiftFn) *Causal {
 	return &Causal{
-		chunkSize:        chunkSize,
-		shiftFn:          shift,
-		ctxs:             make(map[int]ml.Context),
-		keys:             make(map[int]ml.Tensor),
-		values:           make(map[int]ml.Tensor),
-		scratchLowestPos: make(map[int]lowestPosition),
+		chunkSize:          chunkSize,
+		shiftFn:            shift,
+		ctxs:               make(map[int]ml.Context),
+		keys:               make(map[int]ml.Tensor),
+		values:             make(map[int]ml.Tensor),
+		scratchLowestPos:   make(map[int]lowestPosition),
+		compressedSegments: make(map[int]map[int]*compressedSegment),
+		attentionScores:    make(map[int][]float32),
 	}
 }
 
@@ -303,6 +327,17 @@ func (c *Causal) Init(backend ml.Backend, dtype ml.DType, maxSequences, capacity
 	c.cellRanges = make(map[int]cellRange)
 	c.backend = backend
 	c.maxBatch = maxBatch
+
+	// Initialize compression from environment config
+	c.compressionEnabled = envconfig.KvCacheCompression()
+	if c.compressionEnabled {
+		c.compressionThreshold = int32(envconfig.KvCompressionThreshold())
+		c.compressionConfig = &wavelet.CodecConfig{
+			Levels:    int(envconfig.KvCompressionLevel()),
+			Threshold: 0.01, // Default threshold
+			Strategy:  wavelet.ThresholdAbsolute,
+		}
+	}
 }
 
 func (c *Causal) SetConfig(config ml.CacheConfig) {
@@ -497,6 +532,12 @@ func (c *Causal) updateSlidingWindow() {
 					// If cell is now empty, return it to free list
 					if c.cells[i].seqMask.isEmpty() {
 						c.freeCell(i)
+						// Clean up compressed segment if it exists
+						c.compressionMu.Lock()
+						for layer := range c.compressedSegments {
+							delete(c.compressedSegments[layer], i)
+						}
+						c.compressionMu.Unlock()
 					}
 				} else {
 					newRange.min = min(newRange.min, i)
@@ -510,6 +551,17 @@ func (c *Causal) updateSlidingWindow() {
 		}
 
 		c.cellRanges[seq] = newRange
+	}
+
+	// Trigger compression for old segments
+	if c.compressionEnabled {
+		var maxPos int32
+		for _, pos := range c.curPositions {
+			if pos > maxPos {
+				maxPos = pos
+			}
+		}
+		c.compressOldSegments(maxPos)
 	}
 }
 
@@ -625,6 +677,13 @@ func (c *Causal) SetLayer(layer int) {
 	c.curLayer = layer
 }
 
+// RecordAttentionScores implements the CompressionAwareCache interface.
+func (c *Causal) RecordAttentionScores(layer int, scores []float32) {
+	c.compressionMu.Lock()
+	defer c.compressionMu.Unlock()
+	c.attentionScores[layer] = scores
+}
+
 type CausalOptions struct {
 	// Enabled controls whether the causal mask is generated for a particular index in a batch
 	Except []int
@@ -660,6 +719,23 @@ func (c *Causal) SetCausal(ctx ml.Context, opts CausalOptions) {
 func (c *Causal) Get(ctx ml.Context) (ml.Tensor, ml.Tensor, ml.Tensor) {
 	key := c.keys[c.curLayer]
 	value := c.values[c.curLayer]
+
+	// Decompress any cells in the current range that are needed
+	if c.compressionEnabled {
+		for i := c.curCellRange.min; i <= c.curCellRange.max; i++ {
+			if c.cells[i].compressed {
+				kData, vData := c.decompressSegment(c.curLayer, i)
+				if kData != nil && vData != nil {
+					// Write back to tensors
+					// This is a simplified write-back. In production, we'd use
+					// a more efficient way to update the tensor data.
+					c.writeCellData(ctx, key, i, kData)
+					c.writeCellData(ctx, value, i, vData)
+					c.cells[i].compressed = false
+				}
+			}
+		}
+	}
 
 	kHeadDim := key.Dim(0)
 	numKVHeads := key.Dim(1)
@@ -741,6 +817,19 @@ func (c *Causal) Put(ctx ml.Context, key, value ml.Tensor) {
 
 		ctx.Forward(valueCache.SetRows(ctx, value, c.curLoc))
 	}
+}
+
+func (c *Causal) writeCellData(ctx ml.Context, t ml.Tensor, cellIdx int, data []float32) {
+	// Simplified write-back using SetRows or similar
+	// In production, we'd use a more direct method.
+	idxs := ctx.Input().FromInts([]int32{int32(cellIdx)}, 1)
+	rowSize := t.Dim(0) * t.Dim(1)
+	row := ctx.Input().FromFloats(data, rowSize, 1)
+
+	// Reshape t to [rowSize, numCells] for SetRows
+	numCells := len(c.cells)
+	tReshaped := t.Reshape(ctx, rowSize, numCells)
+	ctx.Forward(tReshaped.SetRows(ctx, row, idxs))
 }
 
 // ============================================================================

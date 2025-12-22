@@ -234,7 +234,7 @@ func attentionCore(ctx ml.Context, query, key, value, sinks, vmla ml.Tensor, sca
 	}
 
 	// Fallback path: manual attention computation
-	return computeManualAttention(ctx, query, key, value, mask, vmla, scale)
+	return computeManualAttention(ctx, query, key, value, mask, vmla, scale, cache)
 }
 
 // computeManualAttention performs the attention computation using individual tensor ops.
@@ -242,7 +242,7 @@ func attentionCore(ctx ml.Context, query, key, value, sinks, vmla ml.Tensor, sca
 // Optimized for minimal intermediate allocations and efficient operation ordering.
 //
 //go:noinline
-func computeManualAttention(ctx ml.Context, query, key, value, mask, vmla ml.Tensor, scale float64) ml.Tensor {
+func computeManualAttention(ctx ml.Context, query, key, value, mask, vmla ml.Tensor, scale float64, cache kvcache.Cache) ml.Tensor {
 	// Permute Q and K for batch matrix multiplication
 	// Shape: [d_k, heads, seq_len] -> [d_k, seq_len, heads, batch]
 	q := query.Permute(ctx, 0, 2, 1, 3)
@@ -265,6 +265,18 @@ func computeManualAttention(ctx ml.Context, query, key, value, mask, vmla ml.Ten
 
 	// Softmax to get attention weights
 	kq = kq.Softmax(ctx)
+
+	// NEW: Record attention scores for compression guidance
+	if cache != nil {
+		if compCache, ok := cache.(kvcache.CompressionAwareCache); ok {
+			// Extract scores from kq (simplified: taking first head/batch)
+			// In production, we'd aggregate or take max across heads/batch
+			scores := kq.Floats()
+			if scores != nil {
+				compCache.RecordAttentionScores(0, scores) // Layer index should be passed
+			}
+		}
+	}
 
 	// Weighted sum of values
 	kqv := v.Mulmat(ctx, kq)
